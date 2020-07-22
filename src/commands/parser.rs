@@ -64,9 +64,6 @@ pub enum Setting {
     InputMode(InputMode),
     /// Print implicit properties of objects: id, type id
     ImplicitProperties(SettingBool),
-    /// Print typenames instead of `Object` in default output mode
-    /// (may fail if schema is updated after enabling option)
-    IntrospectTypes(SettingBool),
     /// Print all errors with maximum verbosity
     VerboseErrors(SettingBool),
     /// Set implicit LIMIT. Defaults to 100, specify 0 to disable.
@@ -445,7 +442,6 @@ impl Setting {
         match self {
             InputMode(_) => "input-mode",
             ImplicitProperties(_) => "implicit-properties",
-            IntrospectTypes(_) => "introspect-types",
             VerboseErrors(_) => "verbose-errors",
             Limit(_) => "limit",
             HistorySize(_) => "history-size",
@@ -459,7 +455,6 @@ impl Setting {
         match self {
             InputMode(a) => a.mode.is_none(),
             ImplicitProperties(a) => a.value.is_none(),
-            IntrospectTypes(a) => a.value.is_none(),
             VerboseErrors(a) => a.value.is_none(),
             Limit(a) => a.limit.is_none(),
             HistorySize(a) => a.value.is_none(),

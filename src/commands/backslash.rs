@@ -13,7 +13,6 @@ use crate::print::style::Styler;
 use crate::prompt;
 use crate::commands::execute;
 use crate::commands::parser::{Backslash, BackslashCmd, Setting};
-use crate::commands::type_names::get_type_names;
 use crate::table;
 
 
@@ -308,7 +307,6 @@ impl CommandCache {
         let settings = vec![
                 InputMode(Default::default()),
                 ImplicitProperties(Default::default()),
-                IntrospectTypes(Default::default()),
                 VerboseErrors(Default::default()),
                 Limit(Default::default()),
                 OutputMode(Default::default()),
@@ -446,9 +444,6 @@ pub fn get_setting(s: &Setting, prompt: &repl::State) -> Cow<'static, str> {
         ImplicitProperties(_) => {
             bool_str(prompt.print.implicit_properties).into()
         }
-        IntrospectTypes(_) => {
-            bool_str(prompt.print.type_names.is_some()).into()
-        }
         VerboseErrors(_) => {
             bool_str(prompt.verbose_errors).into()
         }
@@ -525,14 +520,6 @@ pub async fn execute(cmd: &BackslashCmd, prompt: &mut repl::State)
                 }
                 ImplicitProperties(b) => {
                     prompt.print.implicit_properties = b.unwrap_value();
-                }
-                IntrospectTypes(b) => {
-                    if b.unwrap_value() {
-                        prompt.print.type_names =
-                            Some(get_type_names(cli).await?);
-                    } else {
-                        prompt.print.type_names = None;
-                    }
                 }
                 VerboseErrors(b) => {
                     prompt.verbose_errors = b.unwrap_value();

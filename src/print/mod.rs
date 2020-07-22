@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 use std::io;
@@ -8,7 +7,6 @@ use async_std::stream::{Stream, StreamExt};
 use bytes::Bytes;
 use colorful::Colorful;
 use snafu::{Snafu, ResultExt, AsErrorSource};
-use uuid::Uuid;
 
 mod native;
 mod json;
@@ -40,19 +38,17 @@ pub struct Config {
     pub expand_strings: bool,
     pub max_width: Option<usize>,
     pub implicit_properties: bool,
-    pub type_names: Option<HashMap<Uuid, String>>,
     pub max_items: Option<usize>,
 }
 
 
-pub(in crate::print) struct Printer<'a, T> {
+pub(in crate::print) struct Printer<T> {
     // config
     colors: bool,
     indent: usize,
     expand_strings: bool,
     max_width: usize,
     implicit_properties: bool,
-    type_names: &'a Option<HashMap<Uuid, String>>,
     max_items: Option<usize>,
     trailing_comma: bool,
 
@@ -78,7 +74,6 @@ impl Config {
             expand_strings: true,
             max_width: None,
             implicit_properties: false,
-            type_names: None,
             max_items: None,
         }
     }
@@ -112,7 +107,7 @@ pub fn completion(res: &Bytes) {
     }
 }
 
-async fn format_rows_buf<S, I, E, O>(prn: &mut Printer<'_, O>, rows: &mut S,
+async fn format_rows_buf<S, I, E, O>(prn: &mut Printer<O>, rows: &mut S,
     row_buf: &mut Vec<I>)
     -> Result<(), Exception<PrintError<E, O::Error>>>
     where S: Stream<Item=Result<I, E>> + Send + Unpin,
@@ -144,7 +139,7 @@ async fn format_rows_buf<S, I, E, O>(prn: &mut Printer<'_, O>, rows: &mut S,
     Ok(())
 }
 
-async fn format_rows<S, I, E, O>(prn: &mut Printer<'_, O>,
+async fn format_rows<S, I, E, O>(prn: &mut Printer<O>,
     buffered_rows: Vec<I>, rows: &mut S)
     -> Result<(), Exception<PrintError<E, O::Error>>>
     where S: Stream<Item=Result<I, E>> + Send + Unpin,
@@ -200,7 +195,6 @@ pub async fn native_to_stdout<S, I, E>(mut rows: S, config: &Config)
         expand_strings: config.expand_strings,
         max_width: w,
         implicit_properties: config.implicit_properties,
-        type_names: &config.type_names,
         max_items: config.max_items,
         trailing_comma: true,
 
@@ -255,7 +249,6 @@ pub fn test_format_cfg<I: FormatExt>(items: &[I], config: &Config)
         expand_strings: config.expand_strings,
         max_width: config.max_width.unwrap_or(80),
         implicit_properties: config.implicit_properties,
-        type_names: &config.type_names,
         max_items: config.max_items,
         trailing_comma: true,
 
@@ -290,7 +283,6 @@ pub fn test_format<I: FormatExt>(items: &[I])
         expand_strings: false,
         max_width: Some(80),
         implicit_properties: false,
-        type_names: None,
         max_items: None,
     })
 }
@@ -305,7 +297,6 @@ pub fn json_to_string<I: FormatExt>(items: &[I], config: &Config)
         expand_strings: config.expand_strings,
         max_width: config.max_width.unwrap_or(80),
         implicit_properties: config.implicit_properties,
-        type_names: &config.type_names,
         max_items: config.max_items,
         trailing_comma: false,
 
@@ -340,7 +331,6 @@ pub fn json_item_to_string<I: FormatExt>(item: &I, config: &Config)
         expand_strings: config.expand_strings,
         max_width: config.max_width.unwrap_or(80),
         implicit_properties: config.implicit_properties,
-        type_names: &config.type_names,
         max_items: config.max_items,
         trailing_comma: false,
 
